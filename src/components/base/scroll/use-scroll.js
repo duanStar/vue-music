@@ -4,15 +4,19 @@ import { onMounted, onUnmounted, ref } from 'vue'
 
 BScroll.use(ObserveDom)
 
-export default function useScroll(wrapperRef, options) {
+export default function useScroll(wrapperRef, options, emit) {
   const scroll = ref(null)
 
   onMounted(() => {
-    scroll.value = new BScroll(wrapperRef.value, {
+    const scrollValue = scroll.value = new BScroll(wrapperRef.value, {
       observeDOM: true,
       ...options
     })
-    console.log(wrapperRef.value)
+    if (options.probeType > 0) {
+      scrollValue.on('scroll', (pos) => {
+        emit('scroll', pos)
+      })
+    }
   })
 
   onUnmounted(() => {

@@ -13,17 +13,20 @@ const routes = [
   {
     path: '/singer',
     name: 'singer',
-    component: () => import(/* webpackChunkName: "recommend" */ '@/views/singer')
+    component: () => import(/* webpackChunkName: "singer" */ '@/views/singer'),
+    children: [
+      { path: ':mid', component: () => import(/* webpackChunkName: "singer" */ '@/views/singer-detail') }
+    ]
   },
   {
     path: '/top-list',
     name: 'top-list',
-    component: () => import(/* webpackChunkName: "recommend" */ '@/views/top-list')
+    component: () => import(/* webpackChunkName: "top-list" */ '@/views/top-list')
   },
   {
     path: '/search',
     name: 'search',
-    component: () => import(/* webpackChunkName: "recommend" */ '@/views/search')
+    component: () => import(/* webpackChunkName: "search" */ '@/views/search')
   }
 ]
 

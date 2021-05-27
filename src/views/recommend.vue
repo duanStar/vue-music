@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" v-loading="loading">
     <Scroll class="recommend-content">
       <div>
         <div class="slider-wrapper">
@@ -46,6 +46,11 @@ export default {
     return {
       sliders: [],
       albums: []
+    }
+  },
+  computed: {
+    loading() {
+      return !(this.sliders.length && this.albums.length)
     }
   },
   async created() {
