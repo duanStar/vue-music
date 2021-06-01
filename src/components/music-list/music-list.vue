@@ -13,19 +13,35 @@
       ref="bgImage"
     >
       <div
+        class="play-btn-wrapper"
+        :style="playBtnStyle"
+      >
+        <div
+          v-show="songs.length > 0"
+          class="play-btn"
+          @click="random"
+        >
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
+      <div
         class="filter"
+        :style="filterStyle"
       ></div>
     </div>
     <scroll
       class="list"
       :style="scrollStyle"
       v-loading="loading"
+      v-no-result:[noResultText]="noResult"
       :probeType="3"
       @scroll="onScroll"
     >
       <div class="song-list-wrapper">
         <song-list
           :songs="songs"
+          @select="selectItem"
         ></song-list>
       </div>
     </scroll>
@@ -35,6 +51,7 @@
 <script>
 import SongList from '@/components/base/song-list/song-list'
 import Scroll from '@/components/base/scroll/scroll'
+import { mapActions } from 'vuex'
 
 const RESERVED_HEIGHT = 40
 
@@ -60,13 +77,29 @@ export default {
     },
     title: String,
     pic: String,
-    loading: Boolean
+    loading: Boolean,
+    noResultText: {
+      type: String,
+      default: '抱歉，没有找到可播放的歌曲'
+    }
   },
   mounted() {
     this.imageHeight = this.$refs.bgImage.clientHeight
     this.maxTranslateY = this.imageHeight - RESERVED_HEIGHT
   },
   computed: {
+    noResult() {
+      return !this.loading && !this.songs.length
+    },
+    playBtnStyle() {
+      let display = ''
+      if (this.scrollY >= this.maxTranslateY) {
+        display = 'none'
+      }
+      return {
+        display
+      }
+    },
     bgImageStyle() {
       const scrollY = this.scrollY
       let zIndex = 0
@@ -96,6 +129,17 @@ export default {
       return {
         top: `${this.imageHeight}px`
       }
+    },
+    filterStyle() {
+      let blur = 0
+      const scrollY = this.scrollY
+      const imageHeight = this.imageHeight
+      if (scrollY >= 0) {
+        blur = Math.min(scrollY / imageHeight, this.maxTranslateY / imageHeight) * 20
+      }
+      return {
+        backdropFilter: `blur(${blur}px)`
+      }
     }
   },
   methods: {
@@ -104,7 +148,17 @@ export default {
     },
     onScroll(pos) {
       this.scrollY = -pos.y
-    }
+    },
+    selectItem({ song, index }) {
+      this.selectPlay({
+        list: this.songs,
+        index: index
+      })
+    },
+    random() {
+      this.randomPlay(this.songs)
+    },
+    ...mapActions(['selectPlay', 'randomPlay'])
   }
 }
 </script>
