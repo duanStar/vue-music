@@ -18,6 +18,18 @@
         <h2 class="subtitle">{{currentSong.singer}}</h2>
       </div>
       <div class="bottom">
+        <div class="progress-wrapper">
+          <span class="time time-l">{{formatTime(currentTime)}}</span>
+          <div class="progress-bar-wrapper">
+            <progress-bar
+              ref="barRef"
+              :progress="progress"
+              @progressChanging="onProgressChanging"
+              @progressChanged="onProgressChanged"
+            ></progress-bar>
+          </div>
+          <span class="time time-r">{{formatTime(currentSong.duration)}}</span>
+        </div>
         <div class="operators">
           <div class="icon i-left">
             <i @click="changeMode" :class="modeIcon"></i>
@@ -32,12 +44,12 @@
             <i @click="next" class="icon-next"></i>
           </div>
           <div class="icon i-right">
-            <i class="icon-not-favorite"></i>
+            <i @click="toggleFavorite(currentSong)" :class="getFavoriteIcon(currentSong)"></i>
           </div>
         </div>
         </div>
     </div>
-    <audio ref="audioRef" @pause="pause" @canplay="ready" @error="error"></audio>
+    <audio ref="audioRef" @pause="pause" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
@@ -45,16 +57,27 @@
 import { computed, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import useMode from './use-mode'
+import useFavorite from './use-favorite'
+import ProgressBar from './progress-bar'
+import { formatTime } from '@/assets/js/utils.js'
+import { PLAY_MODE } from '@/assets/js/constant'
 
 export default {
   name: 'player',
+  components: {
+    ProgressBar
+  },
   setup() {
+    // data
     const store = useStore()
     const audioRef = ref(null)
     const songReady = ref(false)
+    const currentTime = ref(0)
+    const progressChanging = ref(false)
 
     // hooks
     const { modeIcon, changeMode } = useMode()
+    const { getFavoriteIcon, toggleFavorite } = useFavorite()
 
     // vuex
     const fullScreen = computed(() => store.state.fullScreen)
@@ -70,12 +93,17 @@ export default {
     const disableCls = computed(() => {
       return songReady.value ? '' : 'disable'
     })
+    const progress = computed(() => {
+      return currentTime.value / currentSong.value.duration
+    })
+    const playMode = computed(() => store.state.playMode)
 
     // watch
     watch(currentSong, newSong => {
       if (!newSong.id || !newSong.url) {
         return
       }
+      currentTime.value = 0
       songReady.value = false
       const audioEl = audioRef.value
       audioEl.src = newSong.url
@@ -143,6 +171,9 @@ export default {
       // 设置当前歌曲播放进度为0
       audioEl.currentTime = 0
       audioEl.play()
+      if (!playing.value) {
+        store.commit('setPlayingState', true)
+      }
     }
     const ready = () => {
       if (songReady.value) {
@@ -152,6 +183,30 @@ export default {
     }
     const error = () => {
       songReady.value = true
+    }
+    const updateTime = (e) => {
+      if (!progressChanging.value) {
+        currentTime.value = e.target.currentTime
+      }
+    }
+    const onProgressChanging = (progress) => {
+      progressChanging.value = true
+      currentTime.value = progress * currentSong.value.duration
+    }
+    const onProgressChanged = (progress) => {
+      audioRef.value.currentTime = currentTime.value = progress * currentSong.value.duration
+      if (!playing.value) {
+        store.commit('setPlayingState', true)
+      }
+      progressChanging.value = false
+    }
+    const end = () => {
+      currentTime.value = 0
+      if (playMode.value === PLAY_MODE.loop) {
+        loop()
+      } else {
+        next()
+      }
     }
     return {
       fullScreen,
@@ -167,7 +222,16 @@ export default {
       disableCls,
       error,
       modeIcon,
-      changeMode
+      changeMode,
+      getFavoriteIcon,
+      toggleFavorite,
+      currentTime,
+      progress,
+      updateTime,
+      formatTime,
+      onProgressChanging,
+      onProgressChanged,
+      end
     }
   }
 }

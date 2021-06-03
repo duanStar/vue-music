@@ -1,4 +1,5 @@
-import { PLAY_MODE } from '@/assets/js/constant.js'
+import { PLAY_MODE, FAVORITE_KEY } from '@/assets/js/constant.js'
+import storage from 'good-storage'
 
 const state = {
   sequenceList: [],
@@ -6,7 +7,8 @@ const state = {
   playing: false,
   playMode: PLAY_MODE.sequence,
   currentIndex: 0,
-  fullScreen: false
+  fullScreen: false,
+  favoriteList: storage.get(FAVORITE_KEY, [])
 }
 
 export default state
