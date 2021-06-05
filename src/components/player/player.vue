@@ -1,5 +1,5 @@
 <template>
-  <div class="player">
+  <div class="player" v-show="playList.length > 0">
     <div
       class="normal-player"
       v-show="fullScreen"
@@ -17,7 +17,49 @@
         <h1 class="title">{{currentSong.name}}</h1>
         <h2 class="subtitle">{{currentSong.singer}}</h2>
       </div>
+      <div
+       class="middle"
+       @touchstart.prevent="onMiddleTouchStart"
+       @touchmove.prevent="onMiddleTouchMove"
+       @touchend.prevent="onMiddleTouchEnd"
+      >
+        <div class="middle-l" :style="middleLStyle">
+          <div class="cd-wrapper">
+            <div class="cd" ref="cdRef">
+              <img :src="currentSong.pic" class="image" :class="cdCls" ref="cdImageRef" />
+            </div>
+          </div>
+          <div class="playing-lyric-wrapper">
+            <div class="playing-lyric">{{playingLyric}}</div>
+          </div>
+        </div>
+        <scroll
+            class="middle-r"
+            ref="lyricScrollRef"
+            :style="middleRStyle"
+          >
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric" ref="lyricListRef">
+                <p
+                  class="text"
+                  :class="{'current': currentLineNum ===index}"
+                  v-for="(line,index) in currentLyric.lines"
+                  :key="line.num"
+                >
+                  {{line.txt}}
+                </p>
+              </div>
+              <div class="pure-music" v-show="pureMusicLyric">
+                <p>{{pureMusicLyric}}</p>
+              </div>
+            </div>
+          </scroll>
+      </div>
       <div class="bottom">
+        <div class="dot-wrapper">
+          <span class="dot" :class="{'active':currentShow==='cd'}"></span>
+          <span class="dot" :class="{'active':currentShow==='lyric'}"></span>
+        </div>
         <div class="progress-wrapper">
           <span class="time time-l">{{formatTime(currentTime)}}</span>
           <div class="progress-bar-wrapper">
@@ -49,23 +91,31 @@
         </div>
         </div>
     </div>
+    <MiniPlayer :progress="progress" :togglePlay="togglePlay" />
     <audio ref="audioRef" @pause="pause" @canplay="ready" @error="error" @timeupdate="updateTime" @ended="end"></audio>
   </div>
 </template>
 
 <script>
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import useMode from './use-mode'
 import useFavorite from './use-favorite'
 import ProgressBar from './progress-bar'
 import { formatTime } from '@/assets/js/utils.js'
 import { PLAY_MODE } from '@/assets/js/constant'
+import useCd from './use-cd'
+import useLyric from './use-lyric'
+import Scroll from '@/components/base/scroll/scroll'
+import useMiddleInteractive from './use-middle-interactive'
+import MiniPlayer from './mini-player.vue'
 
 export default {
   name: 'player',
   components: {
-    ProgressBar
+    ProgressBar,
+    Scroll,
+    MiniPlayer
   },
   setup() {
     // data
@@ -74,10 +124,14 @@ export default {
     const songReady = ref(false)
     const currentTime = ref(0)
     const progressChanging = ref(false)
+    const barRef = ref(null)
 
     // hooks
     const { modeIcon, changeMode } = useMode()
     const { getFavoriteIcon, toggleFavorite } = useFavorite()
+    const { cdCls, cdRef, cdImageRef } = useCd()
+    const { currentLyric, currentLineNum, playLyric, lyricScrollRef, lyricListRef, stopPlayLyric, pureMusicLyric, playingLyric } = useLyric({ songReady, currentTime })
+    const { currentShow, middleLStyle, middleRStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd } = useMiddleInteractive()
 
     // vuex
     const fullScreen = computed(() => store.state.fullScreen)
@@ -114,7 +168,19 @@ export default {
         return
       }
       const audioEl = audioRef.value
-      newPlaying ? audioEl.play() : audioEl.pause()
+      if (newPlaying) {
+        audioEl.play()
+        playLyric()
+      } else {
+        audioEl.pause()
+        stopPlayLyric()
+      }
+    })
+    watch(fullScreen, async newFullScreen => {
+      if (newFullScreen) {
+        await nextTick()
+        barRef.value.setOffset(progress.value)
+      }
     })
 
     // methods
@@ -180,6 +246,7 @@ export default {
         return
       }
       songReady.value = true
+      playLyric()
     }
     const error = () => {
       songReady.value = true
@@ -192,6 +259,8 @@ export default {
     const onProgressChanging = (progress) => {
       progressChanging.value = true
       currentTime.value = progress * currentSong.value.duration
+      playLyric()
+      stopPlayLyric()
     }
     const onProgressChanged = (progress) => {
       audioRef.value.currentTime = currentTime.value = progress * currentSong.value.duration
@@ -199,6 +268,7 @@ export default {
         store.commit('setPlayingState', true)
       }
       progressChanging.value = false
+      playLyric()
     }
     const end = () => {
       currentTime.value = 0
@@ -231,7 +301,24 @@ export default {
       formatTime,
       onProgressChanging,
       onProgressChanged,
-      end
+      end,
+      cdCls,
+      cdRef,
+      cdImageRef,
+      currentLyric,
+      currentLineNum,
+      lyricScrollRef,
+      lyricListRef,
+      pureMusicLyric,
+      playingLyric,
+      currentShow,
+      middleLStyle,
+      middleRStyle,
+      onMiddleTouchStart,
+      onMiddleTouchMove,
+      onMiddleTouchEnd,
+      playList,
+      barRef
     }
   }
 }

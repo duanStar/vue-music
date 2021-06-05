@@ -18,3 +18,25 @@ export function processSongs(songs) {
     })
   })
 }
+
+const lyricMap = {}
+
+export function getLyric(song) {
+  if (song.lyric) {
+    return Promise.resolve(song.lyric)
+  }
+  const mid = song.mid
+  // 可能不同的song对象mid是相同的
+  const lyric = lyricMap[mid]
+  if (lyric) {
+    return Promise.resolve(lyric)
+  }
+
+  return get('/api/getLyric', {
+    mid
+  }).then(res => {
+    const lyric = res ? res.lyric : '[00:00:00]该歌曲暂时无法获取歌词'
+    lyricMap[mid] = lyric
+    return lyric
+  })
+}
