@@ -14,7 +14,7 @@ export function processSongs(songs) {
       return item
     }).filter(item => {
       // 过滤出可以播放的音乐
-      return item.url.indexOf('vkey') !== -1
+      return item.url && item.url.indexOf('vkey') !== -1
     })
   })
 }

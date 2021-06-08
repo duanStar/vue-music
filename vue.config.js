@@ -14,6 +14,7 @@ module.exports = {
   devServer: {
     before(app) {
       registerRouter(app)
-    }
+    },
+    open: true
   }
 }
