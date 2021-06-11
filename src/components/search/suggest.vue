@@ -3,12 +3,13 @@
     ref="rootRef"
     class="suggest"
     v-loading:[loadingText]="loading"
-    v-no-result="noResult"
+    v-no-result:[noResultText]="noResult"
   >
     <ul class="suggest-list">
       <li
         class="suggest-item"
         v-if="singer"
+        @click="selectSinger(singer)"
       >
         <div class="icon">
           <i class="icon-mine"></i>
@@ -21,6 +22,7 @@
         class="suggest-item"
         v-for="song in songs"
         :key="song.id"
+        @click="selectSong(song)"
       >
         <div class="icon">
           <i class="icon-music"></i>
@@ -33,15 +35,17 @@
       </li>
       <div
         class="suggest-item"
+        v-loading:[loadingText]="pullupLoading"
       ></div>
     </ul>
   </div>
 </template>
 
 <script>
-  import { computed, ref, watch } from 'vue'
+  import { computed, ref, watch, nextTick } from 'vue'
   import { search } from '@/service/search'
   import { processSongs } from '@/service/song'
+  import usePullupLoad from './use-pull-up-load'
 
   export default {
     name: 'suggest',
@@ -54,7 +58,8 @@
     },
     data() {
       return {
-        loadingText: ''
+        loadingText: '',
+        noResultText: '抱歉，暂无搜索结果'
       }
     },
     emits: ['select-song', 'select-singer'],
@@ -63,8 +68,12 @@
       const songs = ref([])
       const hasMore = ref(true)
       const page = ref(1)
+      const manualLoading = ref(false)
 
       const searchFirst = async () => {
+        if (!props.query) {
+          return
+        }
         page.value = 1
         singer.value = null
         songs.value = []
@@ -73,7 +82,29 @@
         songs.value = await processSongs(res.songs)
         singer.value = res.singer
         hasMore.value = res.hasMore
-        page.value += 1
+        await nextTick()
+        await makeItScrollable()
+      }
+
+      async function searchMore() {
+        if (!hasMore.value && !props.query) {
+          return
+        }
+        page.value++
+        const res = await search(props.query, page.value, props.showSinger)
+        songs.value = songs.value.concat(await processSongs(res.songs))
+        singer.value = res.singer
+        hasMore.value = res.hasMore
+        await nextTick()
+        await makeItScrollable()
+      }
+
+      async function makeItScrollable() {
+        manualLoading.value = true
+        if (scroll.value.maxScrollY >= -1) {
+          await searchMore()
+          manualLoading.value = false
+        }
       }
 
       const noResult = computed(() => {
@@ -83,6 +114,24 @@
       const loading = computed(() => {
         return !singer.value && !songs.value.length
       })
+
+      const pullupLoading = computed(() => {
+        return isPullupLoad.value && hasMore.value
+      })
+
+      const preventPullupLoad = computed(() => {
+        return loading.value || manualLoading.value
+      })
+
+      const selectSong = (song) => {
+        emit('select-song', song)
+      }
+
+      const selectSinger = (singer) => {
+        emit('select-singer', singer)
+      }
+
+      const { rootRef, isPullupLoad, scroll } = usePullupLoad(searchMore, preventPullupLoad)
 
       watch(() => props.query, async (newQuery) => {
         if (!newQuery) {
@@ -96,7 +145,13 @@
         singer,
         hasMore,
         noResult,
-        loading
+        loading,
+        rootRef,
+        isPullupLoad,
+        scroll,
+        pullupLoading,
+        selectSong,
+        selectSinger
       }
     }
   }

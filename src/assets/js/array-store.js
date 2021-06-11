@@ -1,9 +1,12 @@
 import storage from 'good-storage'
 
-function insertArray(arr, val, compare, maxLen) {
+function inertArray(arr, val, compare, maxLen) {
   const index = arr.findIndex(compare)
-  if (index > -1) {
+  if (index === 0) {
     return
+  }
+  if (index > 0) {
+    arr.splice(index, 1)
   }
   arr.unshift(val)
   if (maxLen && arr.length > maxLen) {
@@ -20,7 +23,7 @@ function deleteFromArray(arr, compare) {
 
 export function save(item, key, compare, maxLen) {
   const items = storage.get(key, [])
-  insertArray(items, item, compare, maxLen)
+  inertArray(items, item, compare, maxLen)
   storage.set(key, items)
   return items
 }
@@ -30,4 +33,17 @@ export function remove(key, compare) {
   deleteFromArray(items, compare)
   storage.set(key, items)
   return items
+}
+
+export function load(key) {
+  return storage.get(key, [])
+}
+
+export function clear(key) {
+  storage.remove(key)
+  return []
+}
+
+export function saveAll(items, key) {
+  storage.set(key, items)
 }

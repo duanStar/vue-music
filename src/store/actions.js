@@ -30,3 +30,27 @@ export function changeMode({ commit, state, getters }, mode) {
   commit('setPlayMode', mode)
   commit('setCurrentIndex', index)
 }
+
+export function addSong({ commit, state }, song) {
+  const playList = state.playList.slice()
+  const sequenceList = state.sequenceList.slice()
+  let currentIndex = state.currentIndex
+  const playIndex = playList.findIndex(item => item.id === song.id)
+  if (playIndex > -1) {
+    currentIndex = playIndex
+  } else {
+    playList.push(song)
+    currentIndex = playList.length - 1
+  }
+
+  const sequenceIndex = sequenceList.findIndex(item => item.id === song.id)
+  if (sequenceIndex === -1) {
+    sequenceList.push(song)
+  }
+
+  commit('setPlayList', playList)
+  commit('setSequenceList', sequenceList)
+  commit('setCurrentIndex', currentIndex)
+  commit('setPlayingState', true)
+  commit('setFullScreen', true)
+}

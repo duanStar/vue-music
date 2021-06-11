@@ -26,7 +26,10 @@ const routes = [
   {
     path: '/search',
     name: 'search',
-    component: () => import(/* webpackChunkName: "search" */ '@/views/search')
+    component: () => import(/* webpackChunkName: "search" */ '@/views/search'),
+    children: [
+      { path: ':mid', component: () => import(/* webpackChunkName: "search" */ '@/views/singer-detail') }
+    ]
   }
 ]
 

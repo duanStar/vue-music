@@ -19,9 +19,13 @@
           >
         </div>
       </div>
-      <div class="slider-wrapper">
-        <h2 class="name">{{currentSong.name}}</h2>
-        <p class="desc">{{currentSong.singer}}</p>
+      <div class="slider-wrapper" ref="sliderWrapperRef">
+        <div class="slider-group">
+          <div class="slider-page">
+            <h2 class="name">{{currentSong.name}}</h2>
+            <p class="desc">{{currentSong.singer}}</p>
+          </div>
+        </div>
       </div>
       <div class="control">
         <progressCircle :radius="32" :progress="progress">
@@ -33,7 +37,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import useCd from './use-cd'
 import ProgressCircle from './progress-circle.vue'
@@ -51,10 +55,12 @@ export default {
     togglePlay: Function
   },
   setup() {
+    const playlistRef = ref(null)
     const store = useStore()
     const fullScreen = computed(() => store.state.fullScreen)
     const currentSong = computed(() => store.getters.currentSong)
     const playing = computed(() => store.state.playing)
+
     const { cdCls, cdRef, cdImageRef } = useCd()
 
     const miniPlayIcon = computed(() => {
@@ -65,7 +71,11 @@ export default {
       store.commit('setFullScreen', true)
     }
 
-    return { fullScreen, currentSong, cdRef, cdImageRef, cdCls, miniPlayIcon, showNormalPlayer }
+    function showPlaylist() {
+        playlistRef.value.show()
+      }
+
+    return { fullScreen, currentSong, cdRef, cdImageRef, cdCls, miniPlayIcon, showNormalPlayer, playlistRef, showPlaylist }
   }
 }
 </script>
