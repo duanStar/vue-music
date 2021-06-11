@@ -8,7 +8,10 @@ const routes = [
   {
     path: '/recommend',
     name: 'recommend',
-    component: () => import(/* webpackChunkName: "recommend" */ '@/views/recommend')
+    component: () => import(/* webpackChunkName: "recommend" */ '@/views/recommend'),
+    children: [
+      { path: ':id', component: () => import(/* webpackChunkName: "recommend" */ '@/views/album') }
+    ]
   },
   {
     path: '/singer',
@@ -21,7 +24,13 @@ const routes = [
   {
     path: '/top-list',
     name: 'top-list',
-    component: () => import(/* webpackChunkName: "top-list" */ '@/views/top-list')
+    component: () => import(/* webpackChunkName: "top-list" */ '@/views/top-list'),
+    children: [
+      {
+        path: ':id',
+        component: () => import(/* webpackChunkName: "top-list" */ '@/views/top-detail')
+      }
+    ]
   },
   {
     path: '/search',

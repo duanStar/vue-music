@@ -21,9 +21,9 @@
       </div>
       <div class="slider-wrapper" ref="sliderWrapperRef">
         <div class="slider-group">
-          <div class="slider-page">
-            <h2 class="name">{{currentSong.name}}</h2>
-            <p class="desc">{{currentSong.singer}}</p>
+          <div class="slider-page" v-for="song in playList" :key="song.id">
+            <h2 class="name">{{song.name}}</h2>
+            <p class="desc">{{song.singer}}</p>
           </div>
         </div>
       </div>
@@ -32,6 +32,10 @@
           <i class="icon-mini" :class="miniPlayIcon" @click.stop="togglePlay"></i>
         </progressCircle>
       </div>
+      <div class="control" @click.stop="showPlaylist">
+        <i class="icon-playlist"></i>
+      </div>
+      <PlayList ref="playlistRef"></PlayList>
     </div>
   </transition>
 </template>
@@ -41,11 +45,14 @@ import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import useCd from './use-cd'
 import ProgressCircle from './progress-circle.vue'
+import useMiniSlider from './use-mini-slider.js'
+import PlayList from './playlist.vue'
 
 export default {
   name: 'mini-player',
   components: {
-    ProgressCircle
+    ProgressCircle,
+    PlayList
   },
   props: {
     progress: {
@@ -60,8 +67,10 @@ export default {
     const fullScreen = computed(() => store.state.fullScreen)
     const currentSong = computed(() => store.getters.currentSong)
     const playing = computed(() => store.state.playing)
+    const playList = computed(() => store.state.playList)
 
     const { cdCls, cdRef, cdImageRef } = useCd()
+    const { sliderWrapperRef } = useMiniSlider()
 
     const miniPlayIcon = computed(() => {
       return playing.value ? 'icon-pause-mini' : 'icon-play-mini'
@@ -75,7 +84,7 @@ export default {
         playlistRef.value.show()
       }
 
-    return { fullScreen, currentSong, cdRef, cdImageRef, cdCls, miniPlayIcon, showNormalPlayer, playlistRef, showPlaylist }
+    return { fullScreen, currentSong, cdRef, cdImageRef, cdCls, miniPlayIcon, showNormalPlayer, playlistRef, showPlaylist, playList, sliderWrapperRef }
   }
 }
 </script>
