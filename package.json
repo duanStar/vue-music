@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "npm run build && pm2 start backend/prod.server.js &"
   },
   "dependencies": {
     "@better-scroll/core": "^2.3.1",
@@ -32,6 +33,7 @@
     "@vue/compiler-sfc": "^3.0.0",
     "@vue/eslint-config-standard": "^5.1.2",
     "babel-eslint": "^10.1.0",
+    "cookie-parser": "^1.4.5",
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
@@ -41,6 +43,7 @@
     "js-base64": "^3.6.1",
     "node-sass": "^4.12.0",
     "pinyin": "^2.10.2",
-    "sass-loader": "^8.0.2"
+    "sass-loader": "^8.0.2",
+    "xsrf": "^1.0.0"
   }
 }

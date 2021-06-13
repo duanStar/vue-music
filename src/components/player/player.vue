@@ -112,6 +112,7 @@ import Scroll from '@/components/base/scroll/scroll'
 import useMiddleInteractive from './use-middle-interactive'
 import MiniPlayer from './mini-player.vue'
 import useAnimation from './use-animation'
+import usePlayHistory from './use-play-history'
 
 export default {
   name: 'player',
@@ -136,6 +137,7 @@ export default {
     const { currentLyric, currentLineNum, playLyric, lyricScrollRef, lyricListRef, stopPlayLyric, pureMusicLyric, playingLyric } = useLyric({ songReady, currentTime })
     const { currentShow, middleLStyle, middleRStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd } = useMiddleInteractive()
     const { cdWrapperRef, enter, afterEnter, leave, afterLeave } = useAnimation()
+    const { savePlay } = usePlayHistory()
 
     // vuex
     const fullScreen = computed(() => store.state.fullScreen)
@@ -251,6 +253,7 @@ export default {
       }
       songReady.value = true
       playLyric()
+      savePlay(currentSong.value)
     }
     const error = () => {
       songReady.value = true

@@ -39,6 +39,13 @@ const routes = [
     children: [
       { path: ':mid', component: () => import(/* webpackChunkName: "search" */ '@/views/singer-detail') }
     ]
+  },
+  {
+    path: '/user',
+    name: 'user',
+    components: {
+      user: () => import(/* webpackChunkName: "user" */ '@/views/user-center')
+    }
   }
 ]
 

@@ -1,5 +1,5 @@
-import { PLAY_MODE, FAVORITE_KEY, SEARCH_KEY, PLAY_KEY } from '@/assets/js/constant.js'
-import storage from 'good-storage'
+import { PLAY_MODE, SEARCH_KEY } from '@/assets/js/constant.js'
+import { load } from '@/assets/js/array-store'
 
 const state = {
   sequenceList: [],
@@ -8,9 +8,9 @@ const state = {
   playMode: PLAY_MODE.sequence,
   currentIndex: 0,
   fullScreen: false,
-  favoriteList: storage.get(FAVORITE_KEY, []),
-  searchHistory: storage.get(SEARCH_KEY, []),
-  playHistory: storage.get(PLAY_KEY, [])
+  favoriteList: [],
+  searchHistory: load(SEARCH_KEY),
+  playHistory: []
 }
 
 export default state
